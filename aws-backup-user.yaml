@@ -1,0 +1,9 @@
+apiVersion: v1
+kind: Secret
+metadata:
+  name: backup-user  # Changed from backup_user to backup-user
+  namespace: mongodb
+type: Opaque
+data:
+  AWS_ACCESS_KEY_ID: "YOUR_AWS_ACCESS_KEY_ID"
+  AWS_SECRET_ACCESS_KEY: "YOUR_AWS_SECRET_ACCESS_KEY"
