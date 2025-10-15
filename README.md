@@ -216,4 +216,5 @@ kubectl get psmdb-restore -n mongodb -w
 ```
 
 
-full tutorial: 
+# full tutorial: 
+https://medium.com/@abdelrahmanelshahat00/how-to-deploy-production-mongodb-on-kubernetes-with-percona-operator-backups-monitoring-and-c4af1ebd21a4
