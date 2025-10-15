@@ -1,0 +1,12 @@
+# This StorageClass is used for the Percona MongoDB Cluster
+apiVersion: storage.k8s.io/v1
+kind: StorageClass
+metadata:
+  name: percona-mongo-ebs
+provisioner: ebs.csi.aws.com
+parameters:
+  type: gp2
+  encrypted: "true"
+reclaimPolicy: Retain
+volumeBindingMode: WaitForFirstConsumer
+allowVolumeExpansion: true

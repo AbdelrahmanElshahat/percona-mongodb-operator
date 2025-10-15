@@ -1,0 +1,214 @@
+# Percona Server for MongoDB - Production Configuration
+finalizers:
+  - percona.com/delete-psmdb-pods-in-order
+
+nameOverride: "my-db"
+fullnameOverride: "my-db"
+
+systemUsers: {}
+pause: false
+unmanaged: false
+
+unsafeFlags:
+  tls: false
+  replsetSize: true
+  mongosSize: false
+  terminationGracePeriod: false
+  backupIfUnhealthy: false
+
+enableVolumeExpansion: true
+annotations: {}
+
+multiCluster:
+  enabled: false
+
+updateStrategy: SmartUpdate
+
+upgradeOptions:
+  versionServiceEndpoint: https://check.percona.com
+  apply: disabled
+  schedule: "0 2 * * *"
+  setFCV: false
+
+image:
+  repository: percona/percona-server-mongodb
+  tag: 7.0.18-11
+
+imagePullPolicy: IfNotPresent
+
+tls:
+  mode: preferTLS
+  certManager:
+    issuer: selfsigned-issuer
+    issuerKind: Issuer
+
+secrets:
+  users: internal-my-db-users
+
+pmm:
+  enabled: false
+  image:
+    repository: percona/pmm-client
+    tag: 3.4.0
+  serverHost: monitoring-service.monitoring.svc.cluster.local:8443
+
+replsets:
+  rs0:
+    name: rs0
+    size: 3
+    
+    livenessProbe:
+      failureThreshold: 6
+      initialDelaySeconds: 120
+      periodSeconds: 30
+      timeoutSeconds: 30
+    
+    readinessProbe:
+      failureThreshold: 10
+      initialDelaySeconds: 30
+      periodSeconds: 10
+      successThreshold: 1
+      timeoutSeconds: 30
+    
+    storage:
+      engine: wiredTiger
+      wiredTiger:
+        engineConfig:
+          cacheSizeRatio: 0.5
+          directoryForIndexes: false
+          journalCompressor: snappy
+        collectionConfig:
+          blockCompressor: snappy
+        indexConfig:
+          prefixCompression: true
+    
+    sidecars:
+    - image: percona/mongodb_exporter:0.36
+      name: metrics
+      env:
+      - name: EXPORTER_USER
+        valueFrom:
+          secretKeyRef:
+            name: internal-my-db-users
+            key: MONGODB_CLUSTER_MONITOR_USER
+      - name: EXPORTER_PASS
+        valueFrom:
+          secretKeyRef:
+            name: internal-my-db-users
+            key: MONGODB_CLUSTER_MONITOR_PASSWORD
+      - name: POD_IP
+        valueFrom:
+          fieldRef:
+            fieldPath: status.podIP
+      - name: MONGODB_URI
+        value: "mongodb://$(EXPORTER_USER):$(EXPORTER_PASS)@localhost:27017/?directConnection=true"
+      volumeMounts:
+      - name: ssl
+        mountPath: /etc/mongodb-ssl
+        readOnly: true
+      args:
+        - "--discovering-mode"
+        - "--compatible-mode"
+        - "--collect-all"
+        - "--log.level=info"
+        - "--mongodb.uri=$(MONGODB_URI)"
+    
+    podDisruptionBudget:
+      maxUnavailable: 1
+    
+    expose:
+      enabled: false
+      type: ClusterIP
+    
+    volumeSpec:
+      pvc:
+        storageClassName: percona-mongo-ebs
+        accessModes: ["ReadWriteOnce"]
+        resources:
+          requests:
+            storage: 1Gi
+    
+    nonvoting:
+      enabled: false
+      size: 3
+      volumeSpec:
+        pvc:
+          storageClassName: percona-mongo-ebs
+          accessModes: ["ReadWriteOnce"]
+          resources:
+            requests:
+              storage: 1Gi
+    
+    arbiter:
+      enabled: false
+      size: 1
+
+sharding:
+  enabled: false
+  balancer:
+    enabled: true
+  
+  configrs:
+    size: 3
+    expose:
+      enabled: false
+      type: ClusterIP
+    volumeSpec:
+      pvc:
+        storageClassName: percona-mongo-ebs
+        accessModes: ["ReadWriteOnce"]
+        resources:
+          requests:
+            storage: 1Gi
+  
+  mongos:
+    size: 3
+    expose:
+      enabled: false
+      type: ClusterIP
+
+users:
+- name: testdata-admin
+  db: my-database
+  passwordSecretRef:
+    name: internal-my-db-users
+    key: TESTDATA_ADMIN_PASSWORD
+  roles:
+    - name: dbOwner
+      db: my-database
+    - name: readWrite
+      db: my-database
+
+backup:
+  enabled: true
+  image:
+    repository: percona/percona-backup-mongodb
+    tag: 2.9.1
+  
+  storages:
+    s3-north-1:
+      main: true
+      type: s3
+      s3:
+        bucket: database-backups-1760441888
+        credentialsSecret: backup-user
+        region: us-east-1
+  
+  pitr:
+    enabled: false
+    oplogOnly: false
+  
+  tasks:
+  - name: daily-s3-north-1-backup
+    enabled: true
+    schedule: "0 0 * * *"
+    keep: 7
+    storageName: s3-north-1
+    compressionType: gzip
+  
+  - name: weekly-s3-north-1-backup
+    enabled: true
+    schedule: "0 1 * * 0"
+    keep: 4
+    storageName: s3-north-1
+    compressionType: gzip

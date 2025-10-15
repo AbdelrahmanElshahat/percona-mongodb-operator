@@ -1,0 +1,35 @@
+apiVersion: v1
+kind: Secret
+metadata:
+  name: internal-my-db-users
+  namespace: mongodb
+type: Opaque
+data:
+  # System Users - Using YOUR passwords
+  MONGODB_CLUSTER_ADMIN_USER: Y2x1c3RlckFkbWlu  # clusterAdmin
+  MONGODB_CLUSTER_ADMIN_PASSWORD: Y2x1c3RlclBhc3N3b3Jk  # ClusterPassword
+  MONGODB_CLUSTER_ADMIN_USER_ESCAPED: Y2x1c3RlckFkbWlu  # clusterAdmin
+  MONGODB_CLUSTER_ADMIN_PASSWORD_ESCAPED: Y2x1c3RlclBhc3N3b3Jk  # ClusterPassword
+  
+  MONGODB_CLUSTER_MONITOR_USER: Y2x1c3Rlck1vbml0b3I=  # clusterMonitor
+  MONGODB_CLUSTER_MONITOR_PASSWORD: bW9uaXRvclBhc3N3b3Jk  # monitorPassword
+  MONGODB_CLUSTER_MONITOR_USER_ESCAPED: Y2x1c3Rlck1vbml0b3I=  # clusterMonitor
+  MONGODB_CLUSTER_MONITOR_PASSWORD_ESCAPED: bW9uaXRvclBhc3N3b3Jk  # monitorPassword
+  
+  MONGODB_USER_ADMIN_USER: dXNlckFkbWlu  # userAdmin
+  MONGODB_USER_ADMIN_PASSWORD: dXNlclBhc3N3b3Jk  # userPassword
+  MONGODB_USER_ADMIN_USER_ESCAPED: dXNlckFkbWlu  # userAdmin
+  MONGODB_USER_ADMIN_PASSWORD_ESCAPED: dXNlclBhc3N3b3Jk  # userPassword
+  
+  MONGODB_BACKUP_USER: YmFja3VwVXNlcg==  # backupUser
+  MONGODB_BACKUP_PASSWORD: YmFja3VwUGFzc3dvcmQ=  # backupPassword
+  MONGODB_BACKUP_USER_ESCAPED: YmFja3VwVXNlcg==  # backupUser
+  MONGODB_BACKUP_PASSWORD_ESCAPED: YmFja3VwUGFzc3dvcmQ=  # backupPassword
+  
+  MONGODB_DATABASE_ADMIN_USER: ZGF0YWJhc2VBZG1pbg==  # databaseAdmin
+  MONGODB_DATABASE_ADMIN_PASSWORD: ZGF0YWJhc2VQYXNzd29yZA==  # databasePassword
+  MONGODB_DATABASE_ADMIN_USER_ESCAPED: ZGF0YWJhc2VBZG1pbg==  # databaseAdmin
+  MONGODB_DATABASE_ADMIN_PASSWORD_ESCAPED: ZGF0YWJhc2VQYXNzd29yZA==  # databasePassword
+  
+  # Application User
+  TESTDATA_ADMIN_PASSWORD: ZGF0YVBhc3N3b3Jk  # dataPassword

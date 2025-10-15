@@ -1,0 +1,88 @@
+apiVersion: monitoring.coreos.com/v1alpha1
+kind: AlertmanagerConfig
+metadata:
+  name: main-rules-alert-config
+  namespace: monitoring
+spec:
+  route:
+    receiver: 'discord-slack'
+    repeatInterval: 30m
+    routes:
+    - matchers:
+      - name: alertname
+        value: HostHighCpuLoad
+      receiver: 'discord-slack'
+      repeatInterval: 10m
+    - matchers:
+      - name: alertname
+        value: KubePodContainerFailure
+      receiver: 'discord-slack'
+      repeatInterval: 5m
+    - matchers:
+      - name: alertname
+        value: KubeImagePullBackOff
+      receiver: 'discord-slack'
+      repeatInterval: 5m
+    - matchers:
+      - name: alertname
+        value: MongoDBDown
+      receiver: 'discord-slack'
+      repeatInterval: 5m
+    - matchers:
+      - name: alertname
+        value: mongodb_replset_no_primary
+      receiver: 'discord-slack'
+      repeatInterval: 10m
+    - matchers:
+      - name: alertname
+        value: mongodb_replset_primary_changed
+      receiver: 'discord-slack'
+      repeatInterval: 15m
+    - matchers:
+      - name: alertname
+        value: mongodb_unusual_state
+      receiver: 'discord-slack'
+      repeatInterval: 15m
+    - matchers:
+      - name: alertname
+        value: mongodb_high_memory_usage
+      receiver: 'discord-slack'
+      repeatInterval: 20m
+    - matchers:
+      - name: alertname
+        value: mongodb_restarted
+      receiver: 'discord-slack'
+      repeatInterval: 30m
+    - matchers:
+      - name: alertname
+        value: KubePodOOMKilled
+      receiver: 'discord-slack'
+      repeatInterval: 5m
+
+  receivers:
+  - name: 'discord-slack'
+    slackConfigs:
+    - apiURL:
+        key: url
+        name: discord-webhook-url
+      channel: '#alerts'
+      title: '🚨 Alert: {{ .GroupLabels.alertname }}'
+      text: |
+        **Alert Details:**
+        {{- range .Alerts }}
+        • **Alert:** {{ .Labels.alertname }}
+        • **Instance:** {{ .Labels.instance }}{{ if .Labels.pod }} - {{ .Labels.pod }}{{ end }}{{ if .Labels.node_pod }} ({{ .Labels.node_pod }}){{ end }}{{ if .Labels.mongodb_pod }} ({{ .Labels.mongodb_pod }}){{ end }}{{ if .Labels.affected_pod }} ({{ .Labels.affected_pod }}){{ end }}
+        • **Namespace:** {{ .Labels.namespace }}
+        • **Severity:** {{ .Labels.severity | title }}
+        • **Status:** {{ .Status | title }}
+        • **Summary:** {{ .Annotations.summary }}
+        • **Description:** {{ .Annotations.description }}
+        {{- if eq .Status "resolved" }}
+        • **Resolved at:** {{ .EndsAt.Format "2006-01-02 15:04:05" }}
+        {{- else }}
+        • **Started at:** {{ .StartsAt.Format "2006-01-02 15:04:05" }}
+        {{- end }}
+        ---
+        {{- end }}
+      sendResolved: true
+          # kubectl create secret generic discord-webhook-url --from-literal=url='https://discordapp.com/api/webhooks/1420296816368291880/AlAGVx8JxBSFmWrhkNImLG49XDGJoTgE1_Rig2EzM68DbZjohXsq2HLHfYQXfKQdzWgb/slack' -n monitoring
