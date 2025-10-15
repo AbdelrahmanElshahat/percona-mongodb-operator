@@ -85,4 +85,3 @@ spec:
         ---
         {{- end }}
       sendResolved: true
-          # kubectl create secret generic discord-webhook-url --from-literal=url='https://discordapp.com/api/webhooks/1420296816368291880/AlAGVx8JxBSFmWrhkNImLG49XDGJoTgE1_Rig2EzM68DbZjohXsq2HLHfYQXfKQdzWgb/slack' -n monitoring
